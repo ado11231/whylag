@@ -178,3 +178,63 @@ flowchart TD
     Dns --> Main
 
     classDef default stroke:#c97d3a
+    linkStyle default stroke:#c97d3a
+```
+
+* Three helpers run side by side, so slow commands never freeze the screen.
+* They send their results to the main loop.
+* The main loop updates 4 times a second.
+* On quit, the helpers stop, the terminal goes back to normal, then the summary prints.
+* Use `ratatui::init()` & `ratatui::restore()` so the terminal is put back even after a crash.
+* The DNS helper looks up `example.com`. If that fails, DNS is down.
+
+## Mac & Linux
+
+* Each system's code lives in its own file. Both files have the same functions: `get_signal()`, `get_network_name()`, `get_router()` & `ping_args()`.
+
+| Task | Linux | Mac |
+| --- | --- | --- |
+| Signal | Read `/proc/net/wireless` | `system_profiler SPAirPortDataType` |
+| Network name | `iw dev <wifi> link` | Same as signal |
+| Router | `ip route` | `route -n get default` |
+| Ping | `ping -c 1 -W 1` | `ping -c 1 -W 1000` |
+
+### Reading Pings
+
+* Find `time=` & take the number after it.
+* No `time=` means the ping was lost.
+
+### Mac Notes
+
+* Don't use `airport`. Apple removed it.
+* Don't use `wdutil`. It needs admin rights.
+* `system_profiler` is slow, so check the signal every 5 seconds.
+* If the network name says "redacted", show `Wi-Fi`.
+
+## File Reference
+
+```
+whylag/
+├── Cargo.toml
+└── src/
+    ├── main.rs             start, the main loop & keys
+    ├── app.rs              all saved data
+    ├── helpers.rs          starts the 3 helpers
+    ├── ping.rs             runs ping & reads the time
+    ├── stats.rs            loss, jitter & averages
+    ├── status.rs           picks the status message
+    ├── ui.rs               draws the screen
+    ├── summary.rs          the exit summary
+    ├── log.rs              the CSV file
+    └── platform/
+        ├── mod.rs          picks Mac or Linux
+        ├── linux.rs        Linux commands
+        └── macos.rs        Mac commands
+```
+
+### Libraries
+
+| Crate | Used For |
+| --- | --- |
+| `ratatui` | The screen. Its built-in `crossterm` reads keys. |
+| `chrono` | Times. |
