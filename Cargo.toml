@@ -5,3 +5,4 @@ edition = "2024"
 description = "Live wifi and internet checks in your terminal"
 
 [dependencies]
+ratatui = { version = "0.30.2", default-features = false, features = ["crossterm"] }
