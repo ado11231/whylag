@@ -8,3 +8,6 @@ pub mod helpers;
 pub mod status;
 
 pub mod app;
+
+pub mod log;
+pub mod options;
