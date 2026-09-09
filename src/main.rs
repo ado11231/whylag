@@ -64,10 +64,9 @@ fn monitor(
                 router_ping,
                 internet_ping,
             } = &update
+                && let Some(log) = log
             {
-                if let Some(log) = log {
-                    log.record(options.target, *router, *router_ping, *internet_ping)?;
-                }
+                log.record(options.target, *router, *router_ping, *internet_ping)?;
             }
             app.update(update);
         }

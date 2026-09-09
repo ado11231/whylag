@@ -34,10 +34,10 @@ impl Stats {
                 self.change_total += (value - previous).abs();
                 self.changes += 1;
             }
-            if self.failures >= 3 {
-                if let Some(start) = self.failure_start {
-                    self.offline += elapsed.saturating_sub(start);
-                }
+            if self.failures >= 3
+                && let Some(start) = self.failure_start
+            {
+                self.offline += elapsed.saturating_sub(start);
             }
             self.failures = 0;
             self.failure_start = None;
@@ -80,6 +80,12 @@ impl Stats {
 
     pub fn is_down(&self) -> bool {
         self.failures >= 3
+    }
+
+    pub fn current_outage(&self, elapsed: Duration) -> Duration {
+        self.failure_start
+            .filter(|_| self.is_down())
+            .map_or(Duration::ZERO, |start| elapsed.saturating_sub(start))
     }
 
     pub fn offline(&self, elapsed: Duration) -> Duration {

@@ -50,37 +50,30 @@ impl App {
             } => {
                 self.network.router = router;
                 let was_down = self.internet.is_down();
-                let offline = self.internet.offline(elapsed);
+                let offline = self.internet.current_outage(elapsed);
                 self.router.record(router_ping, elapsed);
                 self.internet.record(internet_ping, elapsed);
                 if !was_down && self.internet.is_down() {
                     self.event("Lost connection".into());
                 }
                 if was_down && !self.internet.is_down() {
-                    // The session total includes earlier outages; subtract them for this event.
-                    let previous = self.internet.offline(elapsed).saturating_sub(offline);
-                    self.event(format!(
-                        "Back online ({}s offline total)",
-                        (offline + previous).as_secs()
-                    ));
+                    self.event(format!("Back online after {}s", offline.as_secs()));
                 }
             }
             Update::Network(network) => {
-                if self.network.name != network.name {
-                    if let Some(name) = &network.name {
-                        self.event(format!("Joined {name}"));
-                    }
+                if self.network.name != network.name
+                    && let Some(name) = &network.name
+                {
+                    self.event(format!("Joined {name}"));
                 }
                 let weak = network.signal.is_some_and(|value| value <= -71);
                 if weak && self.weak_started.is_none() {
                     self.weak_started = Some(elapsed);
                     self.event("Signal dropped to 1 bar".into());
-                } else if !weak {
-                    if let Some(start) = self.weak_started.take() {
-                        self.weak_total += elapsed.saturating_sub(start);
-                        if network.signal.is_some() {
-                            self.event("Signal recovered".into());
-                        }
+                } else if !weak && let Some(start) = self.weak_started.take() {
+                    self.weak_total += elapsed.saturating_sub(start);
+                    if network.signal.is_some() {
+                        self.event("Signal recovered".into());
                     }
                 }
                 self.network.name = network.name;
