@@ -37,6 +37,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
         return Err("an interactive terminal is required; use --help for options".into());
     }
+    whylag::command::check_tools(options.target.is_ipv6())?;
     let mut log = options.log.as_deref().map(Log::create).transpose()?;
     let mut app = App::default();
     let (helpers, updates) = Helpers::start(options.target);

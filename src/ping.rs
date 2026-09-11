@@ -4,11 +4,17 @@ use std::{net::IpAddr, time::Duration};
 pub fn ping(address: IpAddr) -> Option<f64> {
     let target = address.to_string();
     let mut args = platform::ping_args();
+    let mut program = "ping";
     if address.is_ipv6() {
-        args.push("-6");
+        if cfg!(target_os = "macos") {
+            program = "ping6";
+            args = vec!["-n", "-c", "1"];
+        } else {
+            args.push("-6");
+        }
     }
     args.push(&target);
-    command::output("ping", &args, Duration::from_millis(1500))
+    command::output(program, &args, Duration::from_millis(1500))
         .ok()
         .and_then(|text| parse_time(&text))
 }
