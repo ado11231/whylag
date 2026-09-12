@@ -21,9 +21,9 @@ pub fn milliseconds(value: Option<f64>) -> String {
 
 pub fn draw(frame: &mut Frame, app: &App, target: &str) {
     let area = frame.area();
-    if area.width < 42 || area.height < 16 {
+    if area.width < 42 || area.height < 18 {
         frame.render_widget(
-            Paragraph::new("whylag\nResize to at least 42 x 16\nq quit").cyan(),
+            Paragraph::new("whylag\nResize to at least 42 x 18\nq quit").cyan(),
             area,
         );
         return;
@@ -32,7 +32,7 @@ pub fn draw(frame: &mut Frame, app: &App, target: &str) {
         Constraint::Length(3),
         Constraint::Min(4),
         Constraint::Length(3),
-        Constraint::Length(4),
+        Constraint::Length(6),
         Constraint::Length(1),
     ])
     .split(area);
@@ -99,7 +99,7 @@ pub fn draw(frame: &mut Frame, app: &App, target: &str) {
         .events
         .iter()
         .rev()
-        .take(3)
+        .take(5)
         .rev()
         .map(|text| Line::from(format!(" {text}")))
         .collect();
