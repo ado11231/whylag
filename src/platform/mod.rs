@@ -9,7 +9,7 @@ pub use macos::*;
 #[cfg(not(any(target_os = "linux", target_os = "macos")))]
 compile_error!("whylag supports Mac and Linux");
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Network {
     pub name: Option<String>,
     pub signal: Option<i32>,

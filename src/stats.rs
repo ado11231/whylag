@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::time::Duration;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Stats {
     pub history: VecDeque<Option<f64>>,
     pub sent: u64,

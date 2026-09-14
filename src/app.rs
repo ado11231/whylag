@@ -9,6 +9,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[derive(Clone)]
 pub struct App {
     pub started: Instant,
     pub router: Stats,

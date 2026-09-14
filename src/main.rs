@@ -58,6 +58,7 @@ fn monitor(
     log: &mut Option<Log>,
 ) -> io::Result<()> {
     let target = options.target.to_string();
+    let mut paused_view = None;
     loop {
         for update in updates.try_iter() {
             if let Update::Ping {
@@ -71,9 +72,7 @@ fn monitor(
             }
             app.update(update);
         }
-        if !app.paused {
-            terminal.draw(|frame| ui::draw(frame, app, &target))?;
-        }
+        terminal.draw(|frame| ui::draw(frame, paused_view.as_ref().unwrap_or(app), &target))?;
         if event::poll(Duration::from_millis(250))? {
             match event::read()? {
                 Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
@@ -81,14 +80,17 @@ fn monitor(
                     KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => break,
                     KeyCode::Char('p') => {
                         app.paused = !app.paused;
-                        terminal.draw(|frame| ui::draw(frame, app, &target))?;
+                        // Capture once so checks continue while the visible data stays still.
+                        paused_view = app.paused.then(|| app.clone());
                     }
                     KeyCode::Char('t') => app.show_router = !app.show_router,
                     KeyCode::Char('c') => app.clear(),
                     _ => {}
                 },
                 Event::Resize(_, _) => {
-                    terminal.draw(|frame| ui::draw(frame, app, &target))?;
+                    terminal.draw(|frame| {
+                        ui::draw(frame, paused_view.as_ref().unwrap_or(app), &target)
+                    })?;
                 }
                 _ => {}
             }
