@@ -75,3 +75,12 @@ fn dns_events_only_record_transitions() {
             .is_some_and(|text| text.contains("DNS recovered"))
     );
 }
+
+#[test]
+fn session_clock_stops_before_worker_shutdown() {
+    let mut app = App::default();
+    app.finish();
+    let stopped = app.elapsed();
+    std::thread::sleep(std::time::Duration::from_millis(10));
+    assert_eq!(app.elapsed(), stopped);
+}

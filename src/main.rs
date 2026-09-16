@@ -43,6 +43,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let (helpers, updates) = Helpers::start(options.target);
     let mut terminal = ratatui::init();
     let result = monitor(&mut terminal, &mut app, &updates, &options, &mut log);
+    app.finish();
     ratatui::restore();
     drop(helpers);
     result?;

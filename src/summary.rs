@@ -19,7 +19,7 @@ pub fn print(app: &App) -> io::Result<()> {
         out,
         "{border}╭─ whylag summary ───────────────────────────╮{reset}"
     )?;
-    let elapsed = app.started.elapsed();
+    let elapsed = app.elapsed();
     for (name, value) in [
         (
             "Duration",
@@ -72,6 +72,7 @@ fn ansi(color: Color) -> &'static str {
     match color {
         Color::Green => "\x1b[32m",
         Color::Red => "\x1b[31m",
+        Color::Gray => "\x1b[90m",
         _ => "\x1b[33m",
     }
 }

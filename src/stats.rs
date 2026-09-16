@@ -89,11 +89,7 @@ impl Stats {
     }
 
     pub fn offline(&self, elapsed: Duration) -> Duration {
-        let current = self
-            .failure_start
-            .filter(|_| self.is_down())
-            .map_or(Duration::ZERO, |start| elapsed.saturating_sub(start));
-        self.offline + current
+        self.offline + self.current_outage(elapsed)
     }
 }
 

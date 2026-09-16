@@ -12,6 +12,7 @@ use std::{
 #[derive(Clone)]
 pub struct App {
     pub started: Instant,
+    finished: Option<Duration>,
     pub router: Stats,
     pub internet: Stats,
     pub network: Network,
@@ -27,6 +28,7 @@ impl Default for App {
     fn default() -> Self {
         Self {
             started: Instant::now(),
+            finished: None,
             router: Stats::default(),
             internet: Stats::default(),
             network: Network::default(),
@@ -41,8 +43,16 @@ impl Default for App {
 }
 
 impl App {
+    pub fn elapsed(&self) -> Duration {
+        self.finished.unwrap_or_else(|| self.started.elapsed())
+    }
+
+    pub fn finish(&mut self) {
+        self.finished = Some(self.elapsed());
+    }
+
     pub fn update(&mut self, update: Update) {
-        let elapsed = self.started.elapsed();
+        let elapsed = self.elapsed();
         match update {
             Update::Ping {
                 router,
@@ -100,7 +110,7 @@ impl App {
         if self.events.len() == 5 {
             self.events.pop_front();
         }
-        let seconds = self.started.elapsed().as_secs();
+        let seconds = self.elapsed().as_secs();
         let clean: String = message.chars().filter(|ch| !ch.is_control()).collect();
         self.events
             .push_back(format!("{:02}:{:02}  {clean}", seconds / 60, seconds % 60));
@@ -119,9 +129,9 @@ impl App {
 
     pub fn weak_time(&self) -> Duration {
         self.weak_total
-            + self.weak_started.map_or(Duration::ZERO, |start| {
-                self.started.elapsed().saturating_sub(start)
-            })
+            + self
+                .weak_started
+                .map_or(Duration::ZERO, |start| self.elapsed().saturating_sub(start))
     }
 
     pub fn clear(&mut self) {
@@ -129,6 +139,7 @@ impl App {
         self.internet = Stats::default();
         self.events.clear();
         self.started = Instant::now();
+        self.finished = None;
         self.weak_total = Duration::ZERO;
         self.weak_started = self
             .network

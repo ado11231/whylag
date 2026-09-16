@@ -10,6 +10,7 @@ use ratatui::{
 pub const ORANGE: Color = Color::Rgb(235, 163, 65);
 pub fn latency_color(ping: Option<f64>) -> Color {
     match ping {
+        None => Color::Gray,
         Some(value) if value < 50.0 => Color::Green,
         Some(value) if value <= 150.0 => ORANGE,
         _ => Color::Red,
