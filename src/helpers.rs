@@ -23,6 +23,12 @@ pub enum Update {
     Dns(bool),
 }
 
+enum Check {
+    Ping,
+    Network,
+    Dns,
+}
+
 pub struct Helpers {
     stop: Arc<AtomicBool>,
     threads: Vec<JoinHandle<()>>,
@@ -33,7 +39,7 @@ impl Helpers {
         let (sender, receiver) = mpsc::sync_channel(32);
         let stop = Arc::new(AtomicBool::new(false));
         let mut threads = Vec::new();
-        for (interval, task) in [(1, 0), (5, 1), (10, 2)] {
+        for (interval, task) in [(1, Check::Ping), (5, Check::Network), (10, Check::Dns)] {
             let sender = sender.clone();
             let stop = Arc::clone(&stop);
             threads.push(thread::spawn(move || {
@@ -57,13 +63,13 @@ fn run(
     sender: SyncSender<Update>,
     stop: Arc<AtomicBool>,
     interval: Duration,
-    task: u8,
+    task: Check,
     target: IpAddr,
 ) {
     while !stop.load(Ordering::Relaxed) {
         let started = Instant::now();
         let update = match task {
-            0 => {
+            Check::Ping => {
                 let router = platform::get_router();
                 let (router_ping, internet_ping) = thread::scope(|scope| {
                     let internet = scope.spawn(|| ping::ping(target));
@@ -76,8 +82,8 @@ fn run(
                     internet_ping,
                 }
             }
-            1 => Update::Network(platform::read_network()),
-            _ => Update::Dns(check_dns()),
+            Check::Network => Update::Network(platform::read_network()),
+            Check::Dns => Update::Dns(check_dns()),
         };
         // A full queue must not prevent shutdown.
         let _ = sender.try_send(update);
