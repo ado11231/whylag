@@ -26,3 +26,13 @@ whylag
 | `p` | Pause the screen. |
 | `t` | Swap internet & router bars. |
 | `c` | Clear stats. |
+
+## Notes
+
+* `--target` takes an IPv4 or IPv6 address.
+* `--help` shows options. `--version` shows the version.
+* Pause holds the screen still. Checks & logging keep running.
+* Clear starts new stats. It does not erase the CSV file.
+* CSV columns: `unix_seconds,target,router,router_ms,internet_ms`.
+* A blank ping value means no reply. Times use Unix seconds.
+* The log path must not exist. Each sample is flushed to disk.

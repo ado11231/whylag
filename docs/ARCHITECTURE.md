@@ -29,7 +29,7 @@
 
 ## Finding The Problem
 
-* Every second, whylag pings two places:
+* About every second, whylag pings two places. Slow checks can take longer:
 * **Your router**, to check your wifi.
 * **The internet** (`1.1.1.1`), to check your provider.
 
@@ -64,9 +64,9 @@ flowchart LR
 
 | Check | Message | Color |
 | --- | --- | --- |
-| **No router?** No router found. | Not connected to wifi | Red |
+| **No router?** No router found. | Not connected: no router found | Red |
 | **Router silent?** Router not replying. | Wifi problem: can't reach router | Red |
-| **Internet silent?** Internet not replying. | Internet down: provider problem | Red |
+| **Internet silent?** Internet not replying. | Internet unreachable: check your provider | Red |
 | **DNS failing?** Name lookup failing. | DNS problem: websites may not load | Red |
 | **Wifi weak?** Weak signal or router ping over 50 ms. | Weak wifi | Orange |
 | **Internet slow?** Internet ping over 150 ms or recent loss. | Internet laggy | Orange |
@@ -184,13 +184,15 @@ flowchart TD
 * Three helpers run side by side, so slow commands never freeze the screen.
 * They send their results to the main loop.
 * The main loop updates 4 times a second.
+* External commands have time limits. Shutdown waits for running checks to finish.
+* Event times show minutes & seconds since the stats were last cleared.
 * On quit, the helpers stop, the terminal goes back to normal, then the summary prints.
 * Use `ratatui::init()` & `ratatui::restore()` so the terminal is put back even after a crash.
 * The DNS helper looks up `example.com`. If that fails, DNS is down.
 
 ## Mac & Linux
 
-* Each system's code lives in its own file. Both files have the same functions: `get_signal()`, `get_network_name()`, `get_router()` & `ping_args()`.
+* Each system's code lives in its own file. Both files expose `read_network()`, `get_router()` & `ping_args()`.
 
 | Task | Linux | Mac |
 | --- | --- | --- |
@@ -217,6 +219,9 @@ flowchart TD
 whylag/
 ├── Cargo.toml
 └── src/
+    ├── lib.rs              shared modules & tests
+    ├── options.rs          command-line options
+    ├── command.rs          command deadlines & tool checks
     ├── main.rs             start, the main loop & keys
     ├── app.rs              all saved data
     ├── helpers.rs          starts the 3 helpers
@@ -237,4 +242,4 @@ whylag/
 | Crate | Used For |
 | --- | --- |
 | `ratatui` | The screen. Its built-in `crossterm` reads keys. |
-| `chrono` | Times. |
+| Standard library | Session timers & CSV timestamps. |
