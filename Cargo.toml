@@ -2,6 +2,7 @@
 name = "whylag"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 description = "Live wifi and internet checks in your terminal"
 
 [dependencies]
