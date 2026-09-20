@@ -14,15 +14,15 @@ fn renders_status_and_handles_small_terminals() {
     let mut app = App::default();
     sample(&mut app, Some(25.0));
     app.update(Update::Dns(true));
-    for (width, height) in [(80, 24), (42, 18), (20, 8), (1, 1)] {
+    for (width, height) in [(80, 24), (60, 22), (59, 22), (20, 8), (1, 1)] {
         let mut terminal = Terminal::new(TestBackend::new(width, height)).expect("test terminal");
         terminal
             .draw(|frame| ui::draw(frame, &app, "1.1.1.1"))
             .expect("draw screen");
         let buffer = terminal.backend().buffer();
         let text: String = buffer.content.iter().map(|cell| cell.symbol()).collect();
-        if width >= 42 {
-            assert!(text.contains("All good"));
+        if width >= 60 {
+            assert!(text.contains("Connection healthy"));
         } else if width > 1 {
             assert!(text.contains("Resize"));
         }
@@ -72,7 +72,7 @@ fn dns_events_only_record_transitions() {
     assert!(
         app.events
             .back()
-            .is_some_and(|text| text.contains("DNS recovered"))
+            .is_some_and(|text| text.contains("DNS restored"))
     );
 }
 

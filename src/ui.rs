@@ -48,114 +48,34 @@ pub fn clock(duration: Duration) -> String {
 
 pub fn draw(frame: &mut Frame, app: &App, target: &str) {
     let area = frame.area();
-    if area.width < 42 || area.height < 18 {
-        frame.render_widget(
-            Paragraph::new("whylag\nResize to at least 42 x 18\nq quit").cyan(),
-            area,
-        );
+    if area.width < MIN_WIDTH || area.height < MIN_HEIGHT {
+        let message = format!("whylag\nResize to at least {MIN_WIDTH} x {MIN_HEIGHT}\nq quit");
+        frame.render_widget(Paragraph::new(message).fg(LABEL), area);
         return;
     }
-    let sections = Layout::vertical([
-        Constraint::Length(3),
-        Constraint::Min(4),
-        Constraint::Length(3),
+    let [top, middle, details_area, status_area, events_area, bottom] = Layout::vertical([
+        Constraint::Length(2),
+        Constraint::Min(6),
+        Constraint::Length(5),
+        Constraint::Length(1),
         Constraint::Length(6),
         Constraint::Length(1),
     ])
-    .split(area);
-    let name: String = app
-        .network
-        .name
-        .as_deref()
-        .unwrap_or("Network")
-        .chars()
-        .filter(|ch| !ch.is_control())
-        .collect();
-    let signal = app
-        .network
-        .signal
-        .map_or("signal unavailable".into(), |value| {
-            format!("{}  {value} dBm", signal_bars(value))
-        });
-    let header = Line::from(vec![
-        Span::styled(" whylag  ", Style::new().magenta().bold()),
-        Span::raw(name),
-        Span::raw("  "),
-        Span::styled(signal, Style::new().fg(signal_color(app.network.signal))),
-    ]);
-    frame.render_widget(
-        Paragraph::new(header).block(
-            Block::default()
-                .borders(Borders::BOTTOM)
-                .border_style(Style::new().dark_gray()),
-        ),
-        sections[0],
-    );
-    let (stats, label) = if app.show_router {
-        (&app.router, "Router".to_owned())
+    .areas(area);
+    header(frame, top, app);
+    let (stats, title) = if app.show_router {
+        (&app.router, "Router latency".to_owned())
     } else {
-        (&app.internet, format!("Internet · {target}"))
+        (&app.internet, format!("Internet latency  {target}"))
     };
-    chart(frame, sections[1], stats, &label);
-    let health = app.health();
-    let color = match health.health {
-        Health::Checking => Color::Gray,
-        Health::Good => Color::Green,
-        Health::Warning => ORANGE,
-        Health::Bad => Color::Red,
-    };
-    let stats_line = Line::from(vec![
-        Span::styled(" Router ", Style::new().cyan()),
-        Span::raw(milliseconds(app.router.history.back().copied().flatten())),
-        Span::styled("  Net ", Style::new().cyan()),
-        Span::raw(milliseconds(app.internet.history.back().copied().flatten())),
-        Span::raw(format!(
-            "  Loss {:.1}%  Drops {}",
-            app.internet.loss(),
-            app.internet.drops
-        )),
-    ]);
-    frame.render_widget(
-        Paragraph::new(vec![
-            stats_line,
-            Line::styled(format!(" {}", health.message), Style::new().fg(color)),
-        ]),
-        sections[2],
-    );
-    let event_lines: Vec<_> = app
-        .events
-        .iter()
-        .rev()
-        .take(5)
-        .rev()
-        .map(|text| Line::from(format!(" {text}")))
-        .collect();
-    frame.render_widget(
-        Paragraph::new(event_lines)
-            .style(Style::new().gray())
-            .block(
-                Block::default()
-                    .borders(Borders::TOP)
-                    .title(" Events ")
-                    .border_style(Style::new().dark_gray()),
-            ),
-        sections[3],
-    );
-    let footer = if app.paused {
-        " PAUSED  p resume  q quit"
-    } else {
-        " q quit   p pause   t swap   c clear"
-    };
-    frame.render_widget(
-        Paragraph::new(footer).style(Style::new().fg(if app.paused {
-            Color::Yellow
-        } else {
-            Color::Gray
-        })),
-        sections[4],
-    );
+    chart(frame, middle, stats, &title);
+    details(frame, details_area, app, stats);
+    status(frame, status_area, app);
+    events(frame, events_area, app);
+    footer(frame, bottom, app);
 }
 
+/// Network name and signal on the left, gateway on the right.
 fn header(frame: &mut Frame, area: Rect, app: &App) {
     let block = Block::default()
         .borders(Borders::BOTTOM)
@@ -196,6 +116,7 @@ fn header(frame: &mut Frame, area: Rect, app: &App) {
     frame.render_widget(Paragraph::new(left), inner);
 }
 
+/// Grid of numbers for the charted target plus general checks.
 fn details(frame: &mut Frame, area: Rect, app: &App, stats: &Stats) {
     let block = Block::bordered()
         .title(Line::styled(" Details ", Style::new().fg(LABEL).bold()))
@@ -273,10 +194,12 @@ fn details(frame: &mut Frame, area: Rect, app: &App, stats: &Stats) {
     }
 }
 
+/// Green when fine, otherwise the given warning color.
 fn good_or(problem: bool, color: Color) -> Color {
     if problem { color } else { Color::Green }
 }
 
+/// One line that says what is wrong, if anything.
 fn status(frame: &mut Frame, area: Rect, app: &App) {
     let health = app.health();
     let color = match health.health {
