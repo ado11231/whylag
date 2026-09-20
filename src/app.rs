@@ -3,6 +3,7 @@ use crate::{
     platform::Network,
     stats::Stats,
     status::{self, Status},
+    ui::clock,
 };
 use std::{
     collections::VecDeque,
@@ -65,26 +66,26 @@ impl App {
                 self.router.record(router_ping, elapsed);
                 self.internet.record(internet_ping, elapsed);
                 if !was_down && self.internet.is_down() {
-                    self.event("Lost connection".into());
+                    self.event("Connection lost".into());
                 }
                 if was_down && !self.internet.is_down() {
-                    self.event(format!("Back online after {}s", offline.as_secs()));
+                    self.event(format!("Connection restored after {}s", offline.as_secs()));
                 }
             }
             Update::Network(network) => {
                 if self.network.name != network.name
                     && let Some(name) = &network.name
                 {
-                    self.event(format!("Joined {name}"));
+                    self.event(format!("Connected to {name}"));
                 }
                 let weak = network.signal.is_some_and(|value| value <= -71);
                 if weak && self.weak_started.is_none() {
                     self.weak_started = Some(elapsed);
-                    self.event("Signal dropped to 1 bar".into());
+                    self.event("Wifi signal low".into());
                 } else if !weak && let Some(start) = self.weak_started.take() {
                     self.weak_total += elapsed.saturating_sub(start);
                     if network.signal.is_some() {
-                        self.event("Signal recovered".into());
+                        self.event("Wifi signal restored".into());
                     }
                 }
                 self.network.name = network.name;
@@ -94,7 +95,7 @@ impl App {
                 if self.dns != Some(healthy) && (self.dns.is_some() || !healthy) {
                     self.event(
                         if healthy {
-                            "DNS recovered"
+                            "DNS restored"
                         } else {
                             "DNS lookup failed"
                         }
@@ -110,10 +111,10 @@ impl App {
         if self.events.len() == 5 {
             self.events.pop_front();
         }
-        let seconds = self.elapsed().as_secs();
+        // Strip control characters so a network name cannot break the screen.
         let clean: String = message.chars().filter(|ch| !ch.is_control()).collect();
         self.events
-            .push_back(format!("{:02}:{:02}  {clean}", seconds / 60, seconds % 60));
+            .push_back(format!("{}  {clean}", clock(self.elapsed())));
     }
 
     pub fn health(&self) -> Status {
@@ -146,6 +147,6 @@ impl App {
             .signal
             .filter(|value| *value <= -71)
             .map(|_| Duration::ZERO);
-        self.event("Stats cleared".into());
+        self.event("Statistics reset".into());
     }
 }
