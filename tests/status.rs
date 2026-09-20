@@ -10,7 +10,7 @@ fn status_follows_connection_checks_in_order() {
             Some(false),
             None,
             0,
-            "Not connected: no router found",
+            "Disconnected: no router found",
         ),
         (
             true,
@@ -19,7 +19,7 @@ fn status_follows_connection_checks_in_order() {
             Some(false),
             None,
             0,
-            "Wifi problem: can't reach router",
+            "Router unreachable: check your wifi",
         ),
         (
             true,
@@ -37,7 +37,7 @@ fn status_follows_connection_checks_in_order() {
             Some(false),
             None,
             0,
-            "DNS problem: websites may not load",
+            "DNS failing: websites may not load",
         ),
         (
             true,
@@ -46,7 +46,7 @@ fn status_follows_connection_checks_in_order() {
             Some(true),
             Some(-71),
             0,
-            "Weak wifi",
+            "Low wifi signal",
         ),
         (
             true,
@@ -55,7 +55,7 @@ fn status_follows_connection_checks_in_order() {
             Some(true),
             None,
             0,
-            "Weak wifi",
+            "High router latency",
         ),
         (
             true,
@@ -64,7 +64,7 @@ fn status_follows_connection_checks_in_order() {
             Some(true),
             None,
             0,
-            "Internet laggy",
+            "High internet latency",
         ),
         (
             true,
@@ -73,7 +73,7 @@ fn status_follows_connection_checks_in_order() {
             Some(true),
             None,
             1,
-            "Internet laggy",
+            "Packet loss detected",
         ),
     ];
     for (found, router, internet, dns, signal, loss, expected) in cases {

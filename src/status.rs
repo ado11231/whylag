@@ -19,26 +19,29 @@ pub fn evaluate(
     signal: Option<i32>,
     recent_loss: usize,
 ) -> Status {
+    // The first matching check decides the message.
     let (message, health) = if router.is_none() {
-        ("Checking your connection", Health::Checking)
+        ("Checking connection", Health::Checking)
     } else if !router_found {
-        ("Not connected: no router found", Health::Bad)
+        ("Disconnected: no router found", Health::Bad)
     } else if router == Some(None) {
-        ("Wifi problem: can't reach router", Health::Bad)
+        ("Router unreachable: check your wifi", Health::Bad)
     } else if internet == Some(None) {
         ("Internet unreachable: check your provider", Health::Bad)
     } else if dns == Some(false) {
-        ("DNS problem: websites may not load", Health::Bad)
-    } else if signal.is_some_and(|value| value <= -71)
-        || router.flatten().is_some_and(|value| value > 50.0)
-    {
-        ("Weak wifi", Health::Warning)
-    } else if internet.flatten().is_some_and(|value| value > 150.0) || recent_loss > 0 {
-        ("Internet laggy", Health::Warning)
+        ("DNS failing: websites may not load", Health::Bad)
+    } else if signal.is_some_and(|value| value <= -71) {
+        ("Low wifi signal", Health::Warning)
+    } else if router.flatten().is_some_and(|value| value > 50.0) {
+        ("High router latency", Health::Warning)
+    } else if internet.flatten().is_some_and(|value| value > 150.0) {
+        ("High internet latency", Health::Warning)
+    } else if recent_loss > 0 {
+        ("Packet loss detected", Health::Warning)
     } else if internet.is_none() || dns.is_none() {
-        ("Checking your connection", Health::Checking)
+        ("Checking connection", Health::Checking)
     } else {
-        ("All good", Health::Good)
+        ("Connection healthy", Health::Good)
     };
     Status { message, health }
 }
@@ -56,7 +59,7 @@ mod tests {
     #[test]
     fn router_failure_takes_priority_over_dns() {
         let status = evaluate(true, Some(None), Some(None), Some(false), Some(-80), 2);
-        assert_eq!(status.message, "Wifi problem: can't reach router");
+        assert_eq!(status.message, "Router unreachable: check your wifi");
     }
     #[test]
     fn good_connection_can_have_unknown_signal() {
