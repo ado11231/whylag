@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-pub const HELP: &str = "whylag\nLive wifi & internet checks.\n\nUsage: whylag [--target <IP address>] [--log <file>]\n\n  --target  Address to ping (default: 1.1.1.1)\n  --log     Save each sample to a new CSV file\n  -h, --help  Show this help\n  -V, --version  Show the version\n\nKeys: q quit  p pause screen  t swap chart  c clear stats";
+pub const HELP: &str = "whylag\nLive wifi and internet checks.\n\nUsage: whylag [--target <IP address>] [--log <file>]\n\n  --target  Address to ping (default: 1.1.1.1)\n  --log     Save each sample to a new CSV file\n  -h, --help  Show this help\n  -V, --version  Show the version\n\nKeys: q quit  p pause  t switch chart  c reset stats";
 
 pub struct Options {
     pub target: IpAddr,

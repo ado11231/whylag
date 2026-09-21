@@ -50,13 +50,13 @@ flowchart LR
     C -->|No| D["DNS failing?"]
     D -->|No| E["Wifi weak?"]
     E -->|No| F["Internet slow?"]
-    F -->|No| Good["All good"]
-    A -->|Yes| A1["Not connected"]
-    B -->|Yes| B1["Wifi problem"]
-    C -->|Yes| C1["Internet down"]
-    D -->|Yes| D1["DNS problem"]
-    E -->|Yes| E1["Weak wifi"]
-    F -->|Yes| F1["Internet laggy"]
+    F -->|No| Good["Connection healthy"]
+    A -->|Yes| A1["Disconnected"]
+    B -->|Yes| B1["Router unreachable"]
+    C -->|Yes| C1["Internet unreachable"]
+    D -->|Yes| D1["DNS failing"]
+    E -->|Yes| E1["Low signal or high router latency"]
+    F -->|Yes| F1["High latency or packet loss"]
 
     classDef default stroke:#c97d3a
     linkStyle default stroke:#c97d3a
@@ -64,17 +64,20 @@ flowchart LR
 
 | Check | Message | Color |
 | --- | --- | --- |
-| **No router?** No router found. | Not connected: no router found | Red |
-| **Router silent?** Router not replying. | Wifi problem: can't reach router | Red |
+| **No router?** No router found. | Disconnected: no router found | Red |
+| **Router silent?** Router not replying. | Router unreachable: check your wifi | Red |
 | **Internet silent?** Internet not replying. | Internet unreachable: check your provider | Red |
-| **DNS failing?** Name lookup failing. | DNS problem: websites may not load | Red |
-| **Wifi weak?** Weak signal or router ping over 50 ms. | Weak wifi | Orange |
-| **Internet slow?** Internet ping over 150 ms or recent loss. | Internet laggy | Orange |
-| Every check says no. | All good | Green |
+| **DNS failing?** Name lookup failing. | DNS failing: websites may not load | Red |
+| **Wifi weak?** Signal at 1 bar or less. | Low wifi signal | Orange |
+| **Wifi weak?** Router ping over 50 ms. | High router latency | Orange |
+| **Internet slow?** Internet ping over 150 ms. | High internet latency | Orange |
+| **Internet slow?** Recent loss. | Packet loss detected | Orange |
+| Every check says no. | Connection healthy | Green |
 
 ## The Bar Chart
 
 * One bar every second. New bars appear on the right & push old ones left.
+* Each bar is 2 columns wide with a 1 column gap.
 * Taller bar = slower ping. 300 ms or more fills the whole height.
 * Bar color shows lost pings out of the last 10: none is green, 1 is orange, 2 or more is red.
 * No reply = full red bar.
@@ -89,8 +92,8 @@ flowchart LR
 | Okay | Orange |
 | Bad | Red |
 | Titles & labels | Cyan |
-| Highlights | Magenta |
-| Less important text | Gray |
+| Borders & highlights | Magenta |
+| Normal text | Terminal default |
 
 ### Signal
 
@@ -118,7 +121,9 @@ flowchart LR
 | **Jitter** | The average change from one ping to the next. |
 | **Drops** | Times the connection was lost. |
 | **Time offline** | Total time with no connection. |
-| **Weak signal time** | Time at 1 bar or less. |
+| **Low wifi time** | Time at 1 bar or less. |
+| **Router & DNS** | Latest router ping & DNS state. |
+| **Session** | Time since start or last reset. |
 
 ## Event Log
 
@@ -136,8 +141,8 @@ flowchart LR
 | --- | --- |
 | `q` or `Ctrl+C` | Quit & show the summary. |
 | `p` | Pause the screen. |
-| `t` | Swap internet & router bars. |
-| `c` | Clear stats. |
+| `t` | Switch between internet & router charts. |
+| `c` | Reset stats. |
 
 | Option | Does |
 | --- | --- |
@@ -149,14 +154,15 @@ flowchart LR
 * Prints after the screen closes:
 
 ```
-╭─ whylag summary ─────────────── 12 min ─╮
+╭─ whylag summary ────────────────────────╮
 │                                         │
-│   Average ping      38 ms               │
+│   Session           12:04               │
+│   Average           38 ms               │
 │   Best / Worst      21 ms / 410 ms      │
-│   Loss              2.1%                │
+│   Packet loss       2.1%                │
 │   Jitter            6 ms                │
-│   Drops             3  (14s offline)    │
-│   Weak signal       1m 20s              │
+│   Drops             3 (00:14 offline)   │
+│   Low wifi          01:20               │
 │                                         │
 ╰─────────────────────────────────────────╯
 ```
@@ -211,7 +217,7 @@ flowchart TD
 * Don't use `airport`. Apple removed it.
 * Don't use `wdutil`. It needs admin rights.
 * `system_profiler` is slow, so check the signal every 5 seconds.
-* If the network name says "redacted", show `Wi-Fi`.
+* If the network name says "redacted", show `Wifi`.
 
 ## File Reference
 
