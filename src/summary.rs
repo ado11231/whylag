@@ -1,6 +1,6 @@
 use crate::{
     app::App,
-    ui::{latency_color, milliseconds},
+    ui::{clock, latency_color, milliseconds},
 };
 use ratatui::style::Color;
 use std::io::{self, IsTerminal, Write};
@@ -21,11 +21,8 @@ pub fn print(app: &App) -> io::Result<()> {
     )?;
     let elapsed = app.elapsed();
     for (name, value) in [
-        (
-            "Duration",
-            format!("{}m {}s", elapsed.as_secs() / 60, elapsed.as_secs() % 60),
-        ),
-        ("Average ping", milliseconds(stats.average())),
+        ("Session", clock(elapsed)),
+        ("Average", milliseconds(stats.average())),
         (
             "Best / Worst",
             format!(
@@ -34,23 +31,23 @@ pub fn print(app: &App) -> io::Result<()> {
                 milliseconds(stats.worst)
             ),
         ),
-        ("Loss", format!("{:.1}%", stats.loss())),
+        ("Packet loss", format!("{:.1}%", stats.loss())),
         ("Jitter", milliseconds(stats.jitter())),
         (
             "Drops",
             format!(
-                "{} ({}s offline)",
+                "{} ({} offline)",
                 stats.drops,
-                stats.offline(elapsed).as_secs()
+                clock(stats.offline(elapsed))
             ),
         ),
-        ("Weak signal", format!("{}s", app.weak_time().as_secs())),
+        ("Low wifi", clock(app.weak_time())),
     ] {
         let number = if color {
             match name {
-                "Average ping" => ansi(latency_color(stats.average())),
+                "Average" => ansi(latency_color(stats.average())),
                 "Jitter" => ansi(latency_color(stats.jitter())),
-                "Loss" if stats.loss() > 0.0 => "\x1b[33m",
+                "Packet loss" if stats.loss() > 0.0 => "\x1b[33m",
                 "Drops" if stats.drops > 0 => "\x1b[31m",
                 _ => "",
             }
@@ -72,7 +69,7 @@ fn ansi(color: Color) -> &'static str {
     match color {
         Color::Green => "\x1b[32m",
         Color::Red => "\x1b[31m",
-        Color::Gray => "\x1b[90m",
+        Color::Reset => "",
         _ => "\x1b[33m",
     }
 }
