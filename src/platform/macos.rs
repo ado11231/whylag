@@ -42,7 +42,7 @@ pub fn parse_wifi(output: &str) -> (Option<String>, Option<i32>) {
         .map(|line| {
             let name = line.trim().trim_end_matches(':');
             if name.to_lowercase().contains("redacted") {
-                "Wi-Fi".to_owned()
+                "Wifi".to_owned()
             } else {
                 name.to_owned()
             }
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn reads_only_current_network() {
         let text = "Current Network Information:\n  <redacted>:\n    Signal / Noise: -67 dBm / -90 dBm\nOther Local Wi-Fi Networks:\n  Other:";
-        assert_eq!(parse_wifi(text), (Some("Wi-Fi".into()), Some(-67)));
+        assert_eq!(parse_wifi(text), (Some("Wifi".into()), Some(-67)));
         assert_eq!(parse_wifi("Wi-Fi: off"), (None, None));
     }
 }
