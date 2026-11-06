@@ -17,7 +17,7 @@ see why your internet is lagging, live in your terminal
 ## Install
 
 ```sh
-cargo install --path . --locked
+cargo install whylag
 ```
 
 Needs Rust 1.88+ and a terminal of at least 60×22. No admin rights needed.
