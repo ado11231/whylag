@@ -4,7 +4,7 @@
 
 see why your internet is lagging, live in your terminal
 
-[![Crates.io](https://img.shields.io/crates/v/whylag.svg)](https://crates.io/crates/whylag)
+[![Crates.io](https://img.shields.io/crates/v/whylag)](https://crates.io/crates/whylag)
 [![CI](https://github.com/ado11231/whylag/actions/workflows/check.yml/badge.svg)](https://github.com/ado11231/whylag/actions/workflows/check.yml)
 [![MSRV](https://img.shields.io/badge/rust-1.88%2B-orange.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg)](#install)
