@@ -4,6 +4,12 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
 description = "Live wifi and internet checks in your terminal"
+license = "MIT"
+repository = "https://github.com/ado11231/whylag"
+readme = "README.md"
+keywords = ["wifi", "ping", "latency", "network", "tui"]
+categories = ["command-line-utilities", "network-programming"]
+exclude = ["assets/", "examples/", ".github/"]
 
 [dependencies]
 ratatui = { version = "0.30.2", default-features = false, features = ["crossterm"] }
